@@ -272,13 +272,7 @@ contract Summa is Ownable {
 
         bytes memory snarkProof = commitments[timestamp];
     
-        bytes memory combinedProofs = new bytes(snarkProof.length + inclusionProof.length);
-        for (uint256 i = 0; i < inclusionProof.length; i++) {
-            combinedProofs[i] = inclusionProof[i];
-        }
-        for (uint256 i = 0; i < snarkProof.length; i++) {
-            combinedProofs[i + inclusionProof.length] = snarkProof[i];
-        }
+        bytes memory combinedProofs = abi.encodePacked(inclusionProof, snarkProof);
 
         return inclusionVerifier.verifyProof(verifyingKey, combinedProofs, challenges, values);
     }
