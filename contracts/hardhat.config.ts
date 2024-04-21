@@ -21,6 +21,9 @@ module.exports = {
   gasReporter: {
     currency: "USD",
     gasPrice: 30,
+    enabled: process.env.REPORT_GAS ? true : false,
+    outputFile: ".gas-snapshot",
+    noColors: true
   },
   solidity: {
     compilers: [
