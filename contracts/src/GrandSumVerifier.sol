@@ -9,19 +9,19 @@ contract GrandSumVerifier {
 
     // Memory positions for the verifying key.
     // The memory location starts at 0x200 due to the maximum operation on the ec_pairing function being 0x180, marking the maximum memory location used
-    uint256 internal constant             N_INV_MPTR = 0x220;
-    uint256 internal constant             LHS_X_MPTR = 0x240;
-    uint256 internal constant             LHS_Y_MPTR = 0x260;
-    uint256 internal constant              G1_X_MPTR = 0x280;
-    uint256 internal constant              G1_Y_MPTR = 0x2a0;
-    uint256 internal constant            G2_X_1_MPTR = 0x2c0;
-    uint256 internal constant            G2_X_2_MPTR = 0x2e0;
-    uint256 internal constant            G2_Y_1_MPTR = 0x300;
-    uint256 internal constant            G2_Y_2_MPTR = 0x320;
-    uint256 internal constant      NEG_S_G2_X_1_MPTR = 0x340;
-    uint256 internal constant      NEG_S_G2_X_2_MPTR = 0x360;
-    uint256 internal constant      NEG_S_G2_Y_1_MPTR = 0x380;
-    uint256 internal constant      NEG_S_G2_Y_2_MPTR = 0x3a0;
+    uint256 internal constant N_INV_MPTR = 0x180;
+    uint256 internal constant LHS_X_MPTR = 0x1a0;
+    uint256 internal constant LHS_Y_MPTR = 0x1c0;
+    uint256 internal constant G1_X_MPTR = 0x1e0;
+    uint256 internal constant G1_Y_MPTR = 0x200;
+    uint256 internal constant G2_X_1_MPTR = 0x220;
+    uint256 internal constant G2_X_2_MPTR = 0x240;
+    uint256 internal constant G2_Y_1_MPTR = 0x260;
+    uint256 internal constant G2_Y_2_MPTR = 0x280;
+    uint256 internal constant NEG_S_G2_X_1_MPTR = 0x2a0;
+    uint256 internal constant NEG_S_G2_X_2_MPTR = 0x2c0;
+    uint256 internal constant NEG_S_G2_Y_1_MPTR = 0x2e0;
+    uint256 internal constant NEG_S_G2_Y_2_MPTR = 0x300;
 
 
 
