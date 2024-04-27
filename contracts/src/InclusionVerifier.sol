@@ -8,18 +8,18 @@ contract InclusionVerifier {
 
     // Memory positions for the verifying key.
     // The memory location starts at 0x200 due to the maximum operation on the ec_pairing function being 0x180.
-    uint256 internal constant             LHS_X_MPTR = 0x200;
-    uint256 internal constant             LHS_Y_MPTR = 0x220;
-    uint256 internal constant              G1_X_MPTR = 0x240;
-    uint256 internal constant              G1_Y_MPTR = 0x260;
-    uint256 internal constant            G2_X_1_MPTR = 0x280;
-    uint256 internal constant            G2_X_2_MPTR = 0x2a0;
-    uint256 internal constant            G2_Y_1_MPTR = 0x2c0;
-    uint256 internal constant            G2_Y_2_MPTR = 0x2e0;
-    uint256 internal constant      NEG_S_G2_X_1_MPTR = 0x300;
-    uint256 internal constant      NEG_S_G2_X_2_MPTR = 0x320;
-    uint256 internal constant      NEG_S_G2_Y_1_MPTR = 0x340;
-    uint256 internal constant      NEG_S_G2_Y_2_MPTR = 0x360;
+    uint256 internal constant LHS_X_MPTR = 0x180;
+    uint256 internal constant LHS_Y_MPTR = 0x1a0;
+    uint256 internal constant G1_X_MPTR = 0x1c0;
+    uint256 internal constant G1_Y_MPTR = 0x1e0;
+    uint256 internal constant G2_X_1_MPTR = 0x200;
+    uint256 internal constant G2_X_2_MPTR = 0x220;
+    uint256 internal constant G2_Y_1_MPTR = 0x240;
+    uint256 internal constant G2_Y_2_MPTR = 0x260;
+    uint256 internal constant NEG_S_G2_X_1_MPTR = 0x280;
+    uint256 internal constant NEG_S_G2_X_2_MPTR = 0x2a0;
+    uint256 internal constant NEG_S_G2_Y_1_MPTR = 0x2c0;
+    uint256 internal constant NEG_S_G2_Y_2_MPTR = 0x2e0;
 
     function verifyProof(
         address vk,
@@ -92,7 +92,8 @@ contract InclusionVerifier {
             // Ensure the proof length is divisible by `0x80`, accommodating the structured data layout.
             success := and(success, eq(0, mod(proof_length, 0x80)))
             if iszero(success) {
-                revert(0, 0)
+                mstore(0, "Invalid proof length")
+                revert(0, 0x15)
             }
 
             // Load the NEG_S_G2 point with the calculated point
@@ -100,7 +101,8 @@ contract InclusionVerifier {
             let challenges_length := calldataload(challenges_length_pos)
             success := and(success, eq(challenges_length, 4))
             if iszero(success) {
-                revert(0, 0)
+                mstore(0, "Number of challenge mismatch")
+                revert(0, 0x1E)
             }
 
             mstore(NEG_S_G2_X_1_MPTR, calldataload(add(challenges_length_pos, 0x20)))
@@ -115,7 +117,8 @@ contract InclusionVerifier {
             // The proof length should match 4 times the length of the evaluation values.
             success := and(success, eq(4, div(proof_length, mul(evaluation_values_length, 0x20))))
             if iszero(success) {
-                revert(0, 0)
+                mstore(0, "Number of evaluation mismatch")
+                revert(0, 0x1F)
             }
 
             for { let i := 0 } lt(i, evaluation_values_length) { i := add(i, 1) } {
@@ -129,7 +132,11 @@ contract InclusionVerifier {
                 mstore(0x80, mload(G1_X_MPTR))
                 mstore(0xa0, mload(G1_Y_MPTR))
                 mstore(0xc0, minus_z)
-                success := and(success, ec_mul_tmp(success, minus_z))
+                success := ec_mul_tmp(success, minus_z)
+                if iszero(success) {
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
+                }
 
                 // Performaing like `c_g_to_minus_z = c + g_to_minus_z` in `verify_kzg_proof` function that is located in `amortized_kzg.rs`. 
                 // 
@@ -137,24 +144,38 @@ contract InclusionVerifier {
                 // The values of 'g_to_minus_z` is already located at 0x80 and 0xa0 in the previous step 
                 let commitment_proof_pos := add(add(PROOF_CPTR, div(proof_length, 2)), double_shift_pos)
                 success := check_ec_point(success, commitment_proof_pos, q)
+                if iszero(success) {
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
+                }
 
                 let lhs_x := calldataload(commitment_proof_pos)            // C_X
                 let lhs_y := calldataload(add(commitment_proof_pos, 0x20)) // C_Y
                 success := ec_add_tmp(success, lhs_x, lhs_y)
                 if iszero(success) {
-                    revert(0, 0)
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
                 }
                 
+                // Store LHS_X and LHS_Y to memory
                 mstore(LHS_X_MPTR, mload(0x80))
                 mstore(LHS_Y_MPTR, mload(0xa0))
 
                 // Checking from calldata
                 let proof_pos := add(PROOF_CPTR, double_shift_pos)
                 success := check_ec_point(success, proof_pos, q)
+                if iszero(success) {
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
+                }
 
                 let rhs_x := calldataload(proof_pos) // PI_X
                 let rhs_y := calldataload(add(proof_pos, 0x20)) // PI_Y
-                success := and(success, ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y))
+                success := ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y)
+                if iszero(success) {
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
+                }
             }
 
             // Return 1 as result if everything succeeds
