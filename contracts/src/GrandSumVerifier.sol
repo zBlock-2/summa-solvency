@@ -103,7 +103,7 @@ contract GrandSumVerifier {
             success := and(success, eq(0, mod(proof_length, 0x80)))
             if iszero(success) {
                 mstore(0, "Invalid proof length")
-                revert(0, 0x20)
+                revert(0, 0x15)
             }
 
             // Load the length of evaluation values, positioned after the proof data.
@@ -114,7 +114,7 @@ contract GrandSumVerifier {
             success := and(success, eq(4, div(proof_length, mul(evaluation_values_length, 0x20))))
             if iszero(success) {
                 mstore(0, "Number of evaluation mismatch")
-                revert(0, 0x20)
+                revert(0, 0x1F)
             }
 
             for { let i := 0 } lt(i, evaluation_values_length) { i := add(i, 1) } {
@@ -132,7 +132,8 @@ contract GrandSumVerifier {
                 mstore(0xa0, mload(G1_Y_MPTR))
                 success := ec_mul_tmp(success, minus_z)
                 if iszero(success) {
-                    revert(0, 0)
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
                 }
                 
                 // Performaing `c_g_to_minus_z := c + g_to_minus_z`
@@ -141,14 +142,16 @@ contract GrandSumVerifier {
                 let commitment_proof_pos := add(add(PROOF_CPTR, div(proof_length, 2)), double_shift_pos)
                 success := check_ec_point(success, commitment_proof_pos, q)
                 if iszero(success) {
-                    revert(0, 0)
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
                 }
 
                 let lhs_x := calldataload(commitment_proof_pos)            // C_X
                 let lhs_y := calldataload(add(commitment_proof_pos, 0x20)) // C_Y
                 success := ec_add_tmp(success, lhs_x, lhs_y)
                 if iszero(success) {
-                    revert(0, 0)
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
                 }
 
                 // Store LHS_X and LHS_Y to memory
@@ -159,14 +162,16 @@ contract GrandSumVerifier {
                 let proof_pos := add(PROOF_CPTR, double_shift_pos)
                 success := check_ec_point(success, proof_pos, q)
                 if iszero(success) {
-                    revert(0, 0)
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
                 }
 
                 let rhs_x := calldataload(proof_pos) // PI_X
                 let rhs_y := calldataload(add(proof_pos, 0x20)) // PI_Y
                 success := ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y)
                 if iszero(success) {
-                    revert(0, 0)
+                    mstore(0, "Invalid ec computation")
+                    revert(0, 0x17)
                 }
             }
 
