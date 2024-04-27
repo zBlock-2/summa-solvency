@@ -141,6 +141,10 @@ contract GrandSumVerifier {
                 let lhs_x := calldataload(commitment_proof_pos)            // C_X
                 let lhs_y := calldataload(add(commitment_proof_pos, 0x20)) // C_Y
                 success := ec_add_tmp(success, lhs_x, lhs_y)
+                if iszero(success) {
+                    mstore(0, "EC addition failed")
+                    revert(0, 0x20)
+                }
 
                 // Store LHS_X and LHS_Y to memory
                 mstore(LHS_X_MPTR, mload(0x80))
@@ -152,7 +156,7 @@ contract GrandSumVerifier {
 
                 let rhs_x := calldataload(proof_pos) // PI_X
                 let rhs_y := calldataload(add(proof_pos, 0x20)) // PI_Y
-                success := and(success, ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y))
+                success := ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y)
             }
 
             // Return 1 as result if everything succeeds

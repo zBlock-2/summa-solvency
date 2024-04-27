@@ -115,7 +115,8 @@ contract InclusionVerifier {
             // The proof length should match 4 times the length of the evaluation values.
             success := and(success, eq(4, div(proof_length, mul(evaluation_values_length, 0x20))))
             if iszero(success) {
-                revert(0, 0)
+                mstore(0, "Number of evaluation mismatch")
+                revert(0, 0x20)
             }
 
             for { let i := 0 } lt(i, evaluation_values_length) { i := add(i, 1) } {
@@ -142,9 +143,13 @@ contract InclusionVerifier {
                 let lhs_y := calldataload(add(commitment_proof_pos, 0x20)) // C_Y
                 success := ec_add_tmp(success, lhs_x, lhs_y)
                 if iszero(success) {
+                    // mstore(0, "EC addition failed")
+                    // revert(0, 0x20)
+                    // This line does not revert invalid inclusion proof. Why?
                     revert(0, 0)
                 }
                 
+                // Store LHS_X and LHS_Y to memory
                 mstore(LHS_X_MPTR, mload(0x80))
                 mstore(LHS_Y_MPTR, mload(0xa0))
 
@@ -154,7 +159,7 @@ contract InclusionVerifier {
 
                 let rhs_x := calldataload(proof_pos) // PI_X
                 let rhs_y := calldataload(add(proof_pos, 0x20)) // PI_Y
-                success := and(success, ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y))
+                success := ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y)
             }
 
             // Return 1 as result if everything succeeds
