@@ -24,7 +24,7 @@ pub fn parse_csv_to_entries<P: AsRef<Path>, const N_CURRENCIES: usize>(
                 "Too many columns in the CSV file, expected {}, skipping the rest",
                 cryptocurrencies.len()
             );
-            break;
+            break; // this should panic!, not just break
         }
         // Skipping 'username' column
         let parts: Vec<&str> = header.split('_').collect();
@@ -39,6 +39,7 @@ pub fn parse_csv_to_entries<P: AsRef<Path>, const N_CURRENCIES: usize>(
         }
     }
 
+    // what's the point of this variable? it's computing the sum of all user balances, but we don't return it
     let mut balances_acc: Vec<BigUint> = vec![BigUint::from(0_usize); N_CURRENCIES];
 
     for (i, result) in rdr.deserialize().enumerate() {
@@ -66,7 +67,8 @@ pub fn parse_csv_to_entries<P: AsRef<Path>, const N_CURRENCIES: usize>(
             .map(|(x, y)| x + y)
             .collect();
 
-        let entry = Entry::new(username, balances_big_int.try_into().unwrap())?;
+        let entry = Entry::new(username, balances_big_int.try_into().unwrap());
+        // if there are more users in the CSV than expected, this will crash at the end of the process, which is not convenient
         entries[i] = entry;
     }
 

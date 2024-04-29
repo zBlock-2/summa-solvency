@@ -23,7 +23,7 @@ pub fn generate_dummy_entries<const N_USERS: usize, const N_CURRENCIES: usize>(
         let balances: [BigUint; N_CURRENCIES] =
             std::array::from_fn(|_| BigUint::from(rng.gen_range(1000..90000) as u32));
 
-        *entry = Entry::new(username, balances).expect("Failed to create entry");
+        *entry = Entry::new(username, balances);
     });
 
     Ok(entries)

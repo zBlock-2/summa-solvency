@@ -102,8 +102,12 @@ contract GrandSumVerifier {
             // Ensure the proof length is divisible by `0x80`, accommodating the structured data layout.
             success := and(success, eq(0, mod(proof_length, 0x80)))
             if iszero(success) {
-                mstore(0, "Invalid proof length")
-                revert(0, 0x20)
+                mstore(0, "Error(string)")
+                mstore(0, keccak256(0, 13))
+                mstore(4, 0x20)
+                mstore(0x24, 20)
+                mstore(0x44, "Invalid proof length")
+                revert(0, 0x64)
             }
 
             // Load the length of evaluation values, positioned after the proof data.
@@ -113,8 +117,12 @@ contract GrandSumVerifier {
             // The proof length should match 4 times the length of the evaluation values.
             success := and(success, eq(4, div(proof_length, mul(evaluation_values_length, 0x20))))
             if iszero(success) {
-                mstore(0, "Number of evaluation mismatch")
-                revert(0, 0x20)
+                mstore(0, "Error(string)")
+                mstore(0, keccak256(0, 13))
+                mstore(4, 0x20)
+                mstore(0x24, 29)
+                mstore(0x44, "Number of evaluation mismatch")
+                revert(0, 0x64)
             }
 
             for { let i := 0 } lt(i, evaluation_values_length) { i := add(i, 1) } {
@@ -130,7 +138,7 @@ contract GrandSumVerifier {
                 // Assign values on memory for multiplication
                 mstore(0x80, mload(G1_X_MPTR))
                 mstore(0xa0, mload(G1_Y_MPTR))
-                success := and(success, ec_mul_tmp(success, minus_z))
+                success := ec_mul_tmp(success, minus_z)
                 
                 // Performaing `c_g_to_minus_z := c + g_to_minus_z`
                 // `c` is equivalent to `commitment` as input on the `open_grand_sums` function.
@@ -152,7 +160,7 @@ contract GrandSumVerifier {
 
                 let rhs_x := calldataload(proof_pos) // PI_X
                 let rhs_y := calldataload(add(proof_pos, 0x20)) // PI_Y
-                success := and(success, ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y))
+                success := ec_pairing(success, mload(LHS_X_MPTR), mload(LHS_Y_MPTR), rhs_x, rhs_y)
             }
 
             // Return 1 as result if everything succeeds

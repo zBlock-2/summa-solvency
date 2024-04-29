@@ -88,8 +88,7 @@ where
         let instance = meta.instance_column();
         meta.enable_equality(instance);
 
-        for item in balances.iter().take(N_CURRENCIES) {
-            let z = *item;
+        for item in balances.into_iter() {
             // Create 4 advice columns for each range check chip
             let zs = [(); 4].map(|_| meta.advice_column());
 
@@ -97,7 +96,7 @@ where
                 meta.enable_equality(*column);
             }
 
-            let range_check_config = RangeCheckU64Chip::configure(meta, z, zs, range_u16);
+            let range_check_config = RangeCheckU64Chip::configure(meta, item, zs, range_u16);
 
             range_check_configs.push(range_check_config);
         }
