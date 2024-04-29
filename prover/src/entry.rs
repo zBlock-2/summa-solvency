@@ -12,12 +12,12 @@ pub struct Entry<const N_CURRENCIES: usize> {
 }
 
 impl<const N_CURRENCIES: usize> Entry<N_CURRENCIES> {
-    pub fn new(username: String, balances: [BigUint; N_CURRENCIES]) -> Result<Self, &'static str> {
-        Ok(Entry {
+    pub fn new(username: String, balances: [BigUint; N_CURRENCIES]) -> Self {
+        Entry {
             username_as_big_uint: big_intify_username(&username),
             balances,
             username,
-        })
+        }
     }
 
     pub fn init_empty() -> Self {
