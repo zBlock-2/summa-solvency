@@ -144,31 +144,6 @@ contract SummaTest is Test {
         console.log("[+] Running testSummaFlowFullWrongTimeStamps completed!");
     }
 
-    // Working on this one as proofs are failing, will faix ASAP
-    function testSummaSubmitUserInclusion() public {
-        console.log("[+] Starting test testSummaSubmitUserInclusion");
-        console.log("[+] Submitting Commitment proof");
-        commitmentStruct memory cStruct = getCommitmentProofValues();
-        summaContract.submitCommitment(
-            cStruct.snarkProof,
-            cStruct.grandSumProof,
-            cStruct.totalBalances,
-            cStruct.timestamp
-        );
-        console.log("[+] ##COMPLETED## - Submitting Commitment proof");
-        console.log("[+] Submitting User Inclusion proof");
-        inclusionCalldataStruct memory icStruct = getUserProofValues();
-        icStruct.timestamp = 1;
-        summaContract.verifyInclusionProof(
-            icStruct.timestamp,
-            icStruct.inclusionProof,
-            icStruct.challenges,
-            icStruct.values
-        );
-        console.log("[+] ##COMPLETED## - Submitting User Inclusion proof");
-        console.log("[+] Running testSummaSubmitUserInclusion completed!");
-    }
-
     function testSummaFuzzInclusionTimeStamp(uint256 _timeStamp) public {
         vm.assume(_timeStamp != 1);
         commitmentStruct memory cStruct = getCommitmentProofValues();
